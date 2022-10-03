@@ -1,41 +1,45 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const fs = require("fs");
+const express = require('express');
+const c = require('ansi-colors');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+/* START: Express set up */
+const app = express();
+const port = 3000;
 
-var app = express();
+app.use(express.json()); // app.use does stuff on each request, this particular middleware puts the data from the body onto the reqeust
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+// get all the tours at top level
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)); // fs.readFileSync returns buffer
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+// tours, /v1/ allows breaking changes in /v2/ without impacting existing users
+app.get('/api/v1/tours', (req, res) => {
+    // send back all the tours
+    res.status(200).json({
+        status: "success",
+        results: tours.length, // let client know how many results when have > 1
+        data: {
+            tours // matches endpoint
+        }
+    });
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+app.post('/api/v1/tours', (req, res) => {
+    // data NOT available on the request object, needs middleware app.use(express.json())
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+    const newId = tours.at(-1).id + 1; // Provide ID
+    const newTour = Object.assign({id: newId}, req.body); // Create a new object with a single-entry object + the body
+
+    // push newTour into tour array
+    tours.push(newTour);
+    fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`,
+        JSON.stringify(tours), err => {
+            res.status(201).json({
+                status: "success",
+                data: {
+                    tour: newTour
+                }
+            });
+        });
 });
 
-module.exports = app;
+app.listen(port, () => console.log(c.bgGreenBright(`Listening on http://localhost:${port}`)));
