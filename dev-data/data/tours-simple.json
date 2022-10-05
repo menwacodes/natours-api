@@ -210,6 +210,7 @@
     "id": 9,
     "name": "Chelsea by the Sea",
     "duration": 10,
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "price": 100
   }
 ]

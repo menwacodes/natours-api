@@ -6,10 +6,12 @@ const userRouter = require("./routes/userRoutes.js");
 
 const app = express();
 
+// log only in dev
+process.env.NODE_ENV === 'development' && app.use(morgan('dev'));
 
-app.use(morgan('dev'));
+app.use(express.json());
 
-app.use(express.json()); // app.use does stuff on each request, this particular middleware puts the data from the body onto the reqeust
+app.use(express.static(`${__dirname}/public`)) // assumes a public directory in root
 
 // add a property to the request body
 app.use((req, res, next) => {

@@ -1,13 +1,23 @@
 const express = require("express");
 
-const router = express.Router() // creates a new router and saves into router, convention to name variable 'router'
+const router = express.Router();
 
-const {getAllTours, getOneTour, createTour, updateTour, deleteTour} = require("../controllers/tourControllers.js");
+const {
+    getAllTours,
+    getOneTour,
+    createTour,
+    updateTour,
+    deleteTour,
+    checkID,
+    checkBody
+} = require("../controllers/tourControllers.js");
 
-router // specify sub route, if any and routing methods for the router
+router.param('id', checkID);
+
+router
     .route('/')
     .get(getAllTours)
-    .post(createTour);
+    .post(checkBody, createTour);
 
 router
     .route('/:id')
@@ -15,4 +25,4 @@ router
     .patch(updateTour)
     .delete(deleteTour);
 
-module.exports = router
+module.exports = router;
