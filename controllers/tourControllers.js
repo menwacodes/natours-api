@@ -1,4 +1,4 @@
-const Tour = require('./../models/tourModel.js')
+const Tour = require('./../models/tourModel.js');
 
 const getAllTours = (req, res) => {
     res.status(200).json({
@@ -17,15 +17,24 @@ const getOneTour = (req, res) => {
     });
 };
 
-const createTour = (req, res) => {
+const createTour = async (req, res) => {
+// if items come in on req.body that are not part of the schema, they get dropped on the floor
+    try {
+        const newTour = await Tour.create(req.body); // saves directly to db
 
-// res.status(201).json({
-//                 status: "success",
-//                 data: {
-//                     tour: newTour
-//                 }
-//             });
-
+        res.status(201).json({
+            status: "success",
+            data: {
+                tour: newTour
+            }
+        });
+    } catch (e) {
+        console.error("An error occurred", e);
+        res.status(400).json({
+            status: "failure",
+            message: e.code === 11000 ? "That title already exists" : e.message
+        });
+    }
 };
 
 const updateTour = (req, res) => {
