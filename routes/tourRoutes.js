@@ -7,17 +7,14 @@ const {
     getOneTour,
     createTour,
     updateTour,
-    deleteTour,
-    checkID,
-    checkBody
+    deleteTour
 } = require("../controllers/tourControllers.js");
 
-router.param('id', checkID);
 
 router
     .route('/')
     .get(getAllTours)
-    .post(checkBody, createTour);
+    .post(createTour);
 
 router
     .route('/:id')
