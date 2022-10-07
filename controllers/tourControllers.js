@@ -24,17 +24,36 @@ const getAllTours = async (req, res) => {
 
         // query build and fork based on filter presence
         let query;
-        // run different queries based on presence of allowable params
-        if(Object.keys(filterObj).length){
+
+        // Check for Filters
+        if (Object.keys(filterObj).length) {
             // look for gte, lte, etc
             // convert filterObj to string
-            let queryString = JSON.stringify(filterObj)
+            let queryString = JSON.stringify(filterObj);
 
-            queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`)
-            query = Tour.find(JSON.parse(queryString))
+            queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
+            query = Tour.find(JSON.parse(queryString));
+
         } else {
             query = Tour.find();
         }
+
+        //
+        /*
+            SORTING
+            query string: sort=price,duration
+            req.query: { sort: '-price,duration' }
+            mongo: sort('price duration')
+            --> replace comma with space, since it's one value, can use split to create an array with comma as delim, then make it a string again
+            ternary the below
+         */
+        // if (queryObj.sort) {
+        //     const sortBy = queryObj.sort.split(',').join(' ')
+        //     query = query.sort(sortBy)
+        // }
+        queryObj.sort
+            ? query.sort(queryObj.sort.split(',').join(' '))
+            : query.sort('name');
 
         const tours = await query; // query execution
 
