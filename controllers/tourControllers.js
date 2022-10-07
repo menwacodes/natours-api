@@ -5,7 +5,7 @@ const getAllTours = async (req, res) => {
         const queryObj = {...req.query}; // shallow copy req.query (which is not nested)
 
         const excludedFields = ['page', 'sort', 'limit', 'fields']; // array to exclude from filter
-        const allowableFields = ['duration', 'difficulty'].concat(excludedFields); // array to scrape garbage off query string
+        const allowableFields = ['duration', 'difficulty', 'price'].concat(excludedFields); // array to scrape garbage off query string
 
         // scrape any user-augmented params
         // console.log('queryObj before clean: ', queryObj);
@@ -25,9 +25,16 @@ const getAllTours = async (req, res) => {
         // query build and fork based on filter presence
         let query;
         // run different queries based on presence of allowable params
-        Object.keys(filterObj).length
-            ? query = Tour.find(filterObj)
-            : query = Tour.find();
+        if(Object.keys(filterObj).length){
+            // look for gte, lte, etc
+            // convert filterObj to string
+            let queryString = JSON.stringify(filterObj)
+
+            queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`)
+            query = Tour.find(JSON.parse(queryString))
+        } else {
+            query = Tour.find();
+        }
 
         const tours = await query; // query execution
 
