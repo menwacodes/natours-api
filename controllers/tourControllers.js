@@ -51,9 +51,20 @@ const getAllTours = async (req, res) => {
         //     const sortBy = queryObj.sort.split(',').join(' ')
         //     query = query.sort(sortBy)
         // }
+
         queryObj.sort
             ? query.sort(queryObj.sort.split(',').join(' '))
             : query.sort('name');
+
+        /*
+            FIELD LIMITING
+            - limits the number of fields in the return
+            - mongo: query.select('name duration price')
+                - a negative value in select excludes vs limits
+         */
+        queryObj.fields
+            ? query.select(queryObj.fields.split(',').join(' '))
+            : query.select('-__v');
 
         const tours = await query; // query execution
 
