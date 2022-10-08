@@ -165,4 +165,65 @@ const getTourStats = async (req, res) => {
     }
 };
 
-module.exports = {getAllTours, getOneTour, createTour, updateTour, deleteTour, aliasTopTours, getTourStats};
+const getMonthlyPlan = async (req, res) => {
+    try {
+        const year = +req.params.year;
+        console.log(typeof year);
+        const plan = await Tour.aggregate([
+            {
+                $unwind: '$startDates' // deconstruct an array field from the input document and output one document for each el in the array
+            },
+            {
+                $match: {
+                    startDates: { // looks like b/c array dates are strings
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`),
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: {$month: '$startDates'}, // pipeline date operator, returns month as number
+                    numTours: {$sum: 1},
+                    tours: {$push: '$name'}
+                }
+            },
+            {
+                $addFields: {month: '$_id'} // name of the field : the value
+            },
+            {
+                // remove the _id
+                $project: {
+                    _id: 0 // hide
+                }
+            },
+            {
+                $sort: {numTours: -1}
+            },
+            {
+                $limit: 12 // can be a lower number, works like .limit() in the query object
+            }
+        ]);
+        res.status(200).json({
+            status: "success",
+            data: {plan}
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            status: "failure",
+            message: error
+        });
+    }
+};
+
+module.exports = {
+    getAllTours,
+    getOneTour,
+    createTour,
+    updateTour,
+    deleteTour,
+    aliasTopTours,
+    getTourStats,
+    getMonthlyPlan
+};

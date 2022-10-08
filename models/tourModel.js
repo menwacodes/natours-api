@@ -54,7 +54,7 @@ const tourSchema = new mongoose.Schema({
         default: new Date(), // mongoose will convert ms into a date
         select: false
     },
-    startDates: [Date.toLocaleString()] // array of dates, mongodb will try to parse a string of a normal-looking date into an actual date
+    startDates: [Date] // array of dates, mongodb will try to parse a string of a normal-looking date into an actual date
 });
 
 /*
