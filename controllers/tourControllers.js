@@ -1,4 +1,5 @@
 const Tour = require('./../models/tourModel.js');
+const APIFeatures = require("../utils/apiFeatures.js");
 
 const aliasTopTours = async (req, res, next) => {
     // manipulate the request object before getAllTours has it
@@ -22,86 +23,18 @@ const getAllTours = async (req, res) => {
                 delete queryObj[el];
             }
         });
-        // console.log('queryObj after clean: ', queryObj);
-
-        // build filter object by excluding functional params
-        const filterObj = {...queryObj};
-        // console.log('filterObj before clean: ', filterObj)
-        excludedFields.forEach(el => delete filterObj[el]);
-        // console.log('filterObj after clean: ', filterObj)
-
-        // query build and fork based on filter presence
-        let query;
-
-        // Check for Filters
-        if (Object.keys(filterObj).length) {
-            // look for gte, lte, etc
-            // convert filterObj to string
-            let queryString = JSON.stringify(filterObj);
-
-            queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
-            query = Tour.find(JSON.parse(queryString));
-
-        } else {
-            query = Tour.find();
-        }
-
-        //
-        /*
-            SORTING
-            query string: sort=price,duration
-            req.query: { sort: '-price,duration' }
-            mongo: sort('price duration')
-            --> replace comma with space, since it's one value, can use split to create an array with comma as delim, then make it a string again
-            ternary the below
-         */
-        // if (queryObj.sort) {
-        //     const sortBy = queryObj.sort.split(',').join(' ')
-        //     query = query.sort(sortBy)
-        // }
-
-        queryObj.sort
-            ? query.sort(queryObj.sort.split(',').join(' '))
-            : query.sort('name');
-
-        /*
-            FIELD LIMITING
-            - limits the number of fields in the return
-            - mongo: query.select('name duration price')
-                - a negative value in select excludes vs limits
-         */
-        queryObj.fields
-            ? query.select(queryObj.fields.split(',').join(' '))
-            : query.select('-__v');
-
-        /*
-            PAGINATION
-            - should have default pagination
-            - query = query.skip(2).limit(10)
-            - limit is the number of results to return
-            - skip is the amount of results that should be skipped before querying data
-                - page=2,limit=50
-                - results 1-10 are on page 1
-                - results 11-20 are on page 2
-                -> skip 10 results before you start querying
-            - if page = p, limit = l
-                - skip = (p-1) * l
-         */
-        const page = +req.query.page || 1; // defaults
-        const limit = +req.query.limit || 100;
-        const skip = (page - 1) * limit;
-
-        query = query.skip(skip).limit(limit);
-
-        // Account for out-of-range page requests
-        if (req.query.page) {
-            const numTours = await Tour.countDocuments();
-            // if skipping documents leaves no more to query, it's out of range
-            if (skip >= numTours) throw new Error("This page does not exist");
-        }
 
 
-        const tours = await query; // query execution
+        // .find() creates a query object, the class operates on that object
+        // req.query is the query string
+        // the class methods need to return 'this' in order to get back a query object so that chaining can occur
+        const features = new APIFeatures(Tour.find(), queryObj)
+            .filter(excludedFields)
+            .sort()
+            .limitFields()
+            .paginate();
+
+        const tours = await features.query; // query execution
 
         res.status(200).json({
             status: "success",
@@ -193,4 +126,43 @@ const deleteTour = async (req, res) => {
     }
 };
 
-module.exports = {getAllTours, getOneTour, createTour, updateTour, deleteTour, aliasTopTours};
+const getTourStats = async (req, res) => {
+    try {
+        // array of object stages to define pipeline
+        // Tour.aggregate returns an aggregate object like .find returns a query object
+        const stats = await Tour.aggregate([
+            {
+                $match: {ratingsAverage: {$gte: 4.5}} // usually want to create a subset of documents to run through the pipeline but not mandatory
+            },
+            {
+                $group: {
+                    _id: {$toUpper: '$difficulty'}, // group by fields (null - _id: null is the entire set, no group by), first thing in $group
+                    numTours: {$sum: 1}, // for each document that goes through the pipeline, 1 will be added to numTours
+                    numRatings: {$sum: '$ratingsQuantity'},
+                    avgRating: {$avg: '$ratingsAverage'}, // you define this field name, $avg needs the db field name in quotes and prepended with $
+                    avgPrice: {$avg: '$price'},
+                    minPrice: {$min: '$price'},
+                    maxPrice: {$max: '$price'},
+                }
+            },
+            {
+                $sort: {avgPrice: 1} // use the field names specified in the group above as the 'old names' are gone due to group, 1 === ASC, -1 === DESC
+            } //,
+            // {
+            //     $match: {_id: {$ne: 'EASY'}} // repeating an operator, $ne === not equal, working within group, thus 'EASY' and not '$difficulty'
+            // }
+        ]);
+        res.status(200).json({
+            status: "success",
+            data: {stats}
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            status: "failure",
+            message: error
+        });
+    }
+};
+
+module.exports = {getAllTours, getOneTour, createTour, updateTour, deleteTour, aliasTopTours, getTourStats};
