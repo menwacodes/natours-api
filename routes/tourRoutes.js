@@ -7,9 +7,15 @@ const {
     getOneTour,
     createTour,
     updateTour,
-    deleteTour
+    deleteTour,
+    aliasTopTours
 } = require("../controllers/tourControllers.js");
 
+// vanity route to pre-fill fields in query string
+// needs middleware before running the getAllTours handler
+router
+    .route('/top-5-cheap')
+    .get(aliasTopTours, getAllTours);
 
 router
     .route('/')
