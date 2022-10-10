@@ -3,13 +3,17 @@
  */
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-
+// const validator = require('validator')
 
 const tourSchema = new mongoose.Schema({
         name: {
             type: String,
             required: [true, "A tour must have a name"],
-            trim: true  // removes white space around field
+            trim: true,  // removes white space around field
+            unique: true, // not a validator
+            maxlength: [40, 'Name must be lte 40 characters'],
+            minlength: [10, 'Name must be gte 10 characters'],
+            // validate: [validator.isAlpha, 'Name must only be alpha']
         },
         duration: {
             type: Number,
@@ -21,11 +25,17 @@ const tourSchema = new mongoose.Schema({
         },
         difficulty: {
             type: String,
-            required: [true, "A tour must have a difficulty"]
+            required: [true, "A tour must have a difficulty"],
+            enum: {
+                values: ['easy', 'medium', 'difficult'],
+                message: "Choose: easy, medium, difficult"
+            },
         },
         ratingsAverage: {
             type: Number,
-            default: 4.5
+            default: 4.5,
+            min: [1, 'Rating must be >=1'], // min/max also works on dates
+            max: [5, 'Rating must be <=5>'],
         },
         ratingsQuantity: {
             type: Number,
@@ -35,7 +45,20 @@ const tourSchema = new mongoose.Schema({
             type: Number,
             required: [true, "A tour must have a price"]
         },
-        priceDiscount: Number,
+        priceDiscount: {
+            type: Number,
+            validate: {
+                validator: function (val) {
+                    // 'this' points to current document which is needed to compare to price
+                    // if you don't need the current document, you can use an arrow function
+                    // the function has access to the value provided by the client
+                    // in this case, the priceDiscount
+                    return val < this.price;
+                },
+                message: `Price discount of ({VALUE}) must be < price`
+                // message: props => `${props.value}`
+            }
+        },
         summary: {
             type: String,
             required: [true, "A tour must have a description"],
@@ -126,7 +149,7 @@ tourSchema.post(/^find/, function (docs, next) {
 tourSchema.pre('aggregate', function (next) {
     this.pipeline().unshift({
         '$match': {secretTour: {$ne: true}}
-    })
+    });
     console.log(this.pipeline());
     return next();
 });
