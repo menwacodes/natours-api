@@ -6,6 +6,17 @@ const handleCastErrorDB = err => {
     return new AppError(message, 400);
 };
 
+const handleDuplicateKeyError = err => {
+    const message = `Duplicate Key Error: ${err.keyValue.name}.`;
+    return new AppError(message, 400);
+};
+
+const handleValidationError = err => {
+    const errors = Object.values(err.errors).map(el => el["message"]).join('. ');
+    const message = `Invalid input data: ${errors}.`;
+    return new AppError(message, 400);
+};
+
 const sendErrorDev = (err, res) => {
     res.status(err.statusCode).json({
         status: err.status,
@@ -39,10 +50,15 @@ module.exports = (err, req, res, next) => { // 4 parameters is the signature for
     // Differentiate between prod and dev
     if (process.env.NODE_ENV === 'development') sendErrorDev(err, res);
     else if (process.env.NODE_ENV === 'production') {
-
-        let knownErr = {...err};
-        // let knownErr = Object.create(err);
+        // let knownErr = {...err};
+        let knownErr = Object.create(err);
         if (err.name === 'CastError') knownErr = handleCastErrorDB(knownErr);
+
+        // duplicate key error
+        if (err.code === 11000) knownErr = handleDuplicateKeyError(knownErr);
+
+        // validation error
+        if (err.name === "ValidationError") knownErr = handleValidationError(knownErr);
         sendErrorProd(knownErr, res);
     }
 
