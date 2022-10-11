@@ -20,7 +20,8 @@ const userSchema = new Schema({
     password: {
         type: String,
         required: [true, "Password is required"],
-        minlength: 5
+        minlength: 5,
+        select: false
     },
     passwordConfirm: {
         type: String,
@@ -45,6 +46,12 @@ userSchema.pre('save', async function (next) {
 
     return next();
 });
+
+// instance method available on all documents within this collection
+// bcrypt compare is asynchronous
+userSchema.methods.correctPassword = async (sentPW, dbPW) => {
+    return await bcrypt.compare(sentPW, dbPW);
+};
 
 const User = mongoose.model('User', userSchema);
 
