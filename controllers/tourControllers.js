@@ -1,6 +1,7 @@
 const Tour = require('./../models/tourModel.js');
 const APIFeatures = require("../utils/apiFeatures.js");
 const catchAsync = require('../utils/catchAsync.js');
+const AppError = require("../utils/appError.js");
 
 
 const aliasTopTours = async (req, res, next) => {
@@ -48,19 +49,13 @@ const getAllTours = catchAsync(async (req, res, next) => {
 const getOneTour = catchAsync(async (req, res, next) => {
     const tour = await Tour.findById(req.params.id); // because this is a param named id on the route
     // findById is a shorthand helper for .findOne({_id: req.params.id})
+
+    if (!tour) return next(new AppError(`No tour with id ${req.params.id}`, 404));
+
     res.status(200).json({
         status: "success",
         data: {tour}
     });
-    // try {
-    //
-    // } catch (error) {
-    //     console.error(error);
-    //     res.status(400).json({
-    //         status: "failure",
-    //         message: `No tour with id ${req.params.id}`
-    //     });
-    // }
 });
 
 const createTour = catchAsync(async (req, res, next) => {
@@ -80,24 +75,18 @@ const updateTour = catchAsync(async (req, res, next) => {
         new: true, // the new, updated document is what is returned
         runValidators: true // ensures any created validators are run on the passed-in data
     });
+    if (!tour) return next(new AppError(`No tour with id ${req.params.id}`, 404));
     res.status(200).json({
         status: "success",
         data: {tour}
     });
-    // try {
-    //
-    // } catch (e) {
-    //     console.error("An error occurred", e);
-    //     res.status(400).json({
-    //         status: "failure",
-    //         message: e
-    //     });
-    // }
 });
 
 const deleteTour = catchAsync(async (req, res, next) => {
     const id = req.params.id;
-    await Tour.findByIdAndDelete(id);
+    const tour = await Tour.findByIdAndDelete(id);
+    if (!tour) return next(new AppError(`No tour with id ${req.params.id}`, 404));
+
     res.status(204).json({
         status: "success",
         data: {
@@ -105,15 +94,6 @@ const deleteTour = catchAsync(async (req, res, next) => {
             message: `Tour ${id} was deleted`
         }
     });
-    // try {
-    //
-    // } catch (e) {
-    //     console.error(e);
-    //     res.status(400).json({
-    //         status: "failure",
-    //         message: `No Tour with id: ${id}`
-    //     });
-    // }
 });
 
 const getTourStats = catchAsync(async (req, res, next) => {
