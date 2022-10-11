@@ -1,9 +1,17 @@
 const express = require("express");
 const {getAllUsers, createUser, getUser, updateUser, deleteUser} = require("../controllers/userControllers.js");
-const router = express.Router() // creates a new router and saves into router
+const {signUp} = require("../controllers/authController.js");
+const router = express.Router(); // creates a new router and saves into router
 
+/*
+    User Accessible Routes
+ */
+router
+    .post('/signup', signUp);
 
-
+/*
+    Admin Only Routes
+ */
 router
     .route('/')
     .get(getAllUsers)
@@ -15,4 +23,4 @@ router
     .patch(updateUser)
     .delete(deleteUser);
 
-module.exports = router
+module.exports = router;
