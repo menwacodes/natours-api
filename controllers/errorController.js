@@ -1,6 +1,8 @@
 const c = require("ansi-colors");
 const AppError = require("../utils/appError.js");
 
+const handleJWTError = () => new AppError("Invalid Token. Please login again.", 401)
+
 const handleCastErrorDB = err => {
     const message = `Invalid ${err.path}: ${err.value}`;
     return new AppError(message, 400);
@@ -59,6 +61,12 @@ module.exports = (err, req, res, next) => { // 4 parameters is the signature for
 
         // validation error
         if (err.name === "ValidationError") knownErr = handleValidationError(knownErr);
+
+
+        // JSON Web Token error
+        if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") knownErr = handleJWTError(knownErr)
+
+        // send error
         sendErrorProd(knownErr, res);
     }
 

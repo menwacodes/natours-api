@@ -12,6 +12,7 @@ const {
     getTourStats,
     getMonthlyPlan
 } = require("../controllers/tourControllers.js");
+const {protect} = require("../controllers/authController.js");
 
 router
     .route('/tour-stats')
@@ -29,7 +30,7 @@ router
 
 router
     .route('/')
-    .get(getAllTours)
+    .get(protect, getAllTours)
     .post(createTour);
 
 router
