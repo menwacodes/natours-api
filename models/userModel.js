@@ -33,7 +33,12 @@ const userSchema = new Schema({
             message: "Passwords are not the same"
         }
     },
-    passwordChangedAt: Date
+    passwordChangedAt: Date,
+    role: {
+        type: String,
+        enum: ['admin', 'user', 'guide', 'lead-guide'],
+        default: 'user'
+    }
 });
 
 userSchema.pre('save', async function (next) {

@@ -10,8 +10,8 @@ const signJWT = id => {
 };
 
 exports.signUp = catchAsync(async (req, res, next) => {
-    const {name, email, password, passwordConfirm, passwordChangedAt} = req.body;
-    const newUser = await User.create({name, email, password, passwordConfirm, passwordChangedAt});
+    const {name, email, password, passwordConfirm, passwordChangedAt, role} = req.body;
+    const newUser = await User.create({name, email, password, passwordConfirm, passwordChangedAt, role});
     newUser.password = undefined;
 
     // log in created user
@@ -85,3 +85,16 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.user = jwtUser;
     return next();
 });
+
+/*
+    To pass arguments into MW, create a wrapper function, where the inner gets access to the outer's variables
+    - This is due to the closure
+    - The .includes line uses the assignment of req.user = jwtUser which is MW running prior so the req.user object exists
+        - the jwtUser started with a findById(jwt.id) and that user was stored onto the request
+ */
+exports.authorize = (...roles) => {
+    return (req, res, next) => {
+        if (!roles.includes(req.user.role)) return next(new AppError("Not authorized for this action", 403));
+        return next();
+    };
+};

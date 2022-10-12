@@ -12,7 +12,7 @@ const {
     getTourStats,
     getMonthlyPlan
 } = require("../controllers/tourControllers.js");
-const {protect} = require("../controllers/authController.js");
+const {protect, authorize} = require("../controllers/authController.js");
 
 router
     .route('/tour-stats')
@@ -37,6 +37,6 @@ router
     .route('/:id')
     .get(getOneTour)
     .patch(updateTour)
-    .delete(deleteTour);
+    .delete(protect, authorize('admin', 'lead-guide'), deleteTour);
 
 module.exports = router;
