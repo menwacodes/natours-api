@@ -56,6 +56,12 @@ userSchema.pre('save', async function (next) {
     return next();
 });
 
+// update password changed at field
+userSchema.pre('save', async function (next) {
+    if (this.isModified('password') && !this.isNew) this.passwordChangedAt = Date.now() - 1000; // accounts for timing difference between JWT issue and password date
+    return next();
+});
+
 // instance method available on all documents within this collection
 // bcrypt compare is asynchronous
 userSchema.methods.correctPassword = async (sentPW, dbPW) => {
@@ -75,8 +81,8 @@ userSchema.methods.createPasswordResetToken = function () {
     this.passwordResetToken = createHash('sha256').update(resetToken).digest('hex');
     this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
-    console.log({resetToken}, this.passwordResetToken)
-    console.log(this.passwordResetExpires)
+    console.log({resetToken}, this.passwordResetToken);
+    console.log(this.passwordResetExpires);
     return resetToken;
 };
 
