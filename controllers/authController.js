@@ -3,6 +3,8 @@ const catchAsync = require('../utils/catchAsync.js');
 const jwt = require('jsonwebtoken');
 const AppError = require("../utils/appError.js");
 const {promisify} = require('util');
+const sendEmail = require("../utils/email.js");
+
 
 const signJWT = id => {
     const tokenOptions = {expiresIn: process.env.JWT_EXPIRES_IN};
@@ -97,4 +99,42 @@ exports.authorize = (...roles) => {
         if (!roles.includes(req.user.role)) return next(new AppError("Not authorized for this action", 403));
         return next();
     };
+};
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+    // 1) Get user based on POSTed email
+    const user = await User.findOne({email: req.body.email});
+    if (!user) return next(new AppError("There is no user with that email address", 404));
+
+    // 2)  Generate random token
+    const resetToken = user.createPasswordResetToken();
+    await user.save({validateBeforeSave: false}); // deactivates validators
+
+    // 3) Send the reset stuff to user email
+    const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`;
+    const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to ${resetURL}\nIf you did not make this request, oh well`;
+
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: 'Your Password Reset Token (valid for 10 mins)',
+            message
+        });
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Token sent to email on file'
+        });
+    } catch (error) {
+        console.error(error);
+        // reset both the token and expires property, then send to the error handler
+        user.passwordResetToken = user.passwordResetExpires = undefined;
+        await user.save({validateBeforeSave: false});
+        return next(new AppError("There was an error sending the email, oh well", 500));
+    }
+});
+
+exports.resetPassword = (req, res, next) => {
+
+    return next();
 };
