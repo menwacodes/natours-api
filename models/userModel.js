@@ -41,6 +41,11 @@ const userSchema = new Schema({
         type: String,
         enum: ['admin', 'user', 'guide', 'lead-guide'],
         default: 'user'
+    },
+    active: {
+        type: Boolean,
+        default: true,
+        select: false
     }
 });
 
@@ -59,6 +64,12 @@ userSchema.pre('save', async function (next) {
 // update password changed at field
 userSchema.pre('save', async function (next) {
     if (this.isModified('password') && !this.isNew) this.passwordChangedAt = Date.now() - 1000; // accounts for timing difference between JWT issue and password date
+    return next();
+});
+
+// query mw
+userSchema.pre(/^find/, function (next) {
+    this.find({active: true});
     return next();
 });
 
