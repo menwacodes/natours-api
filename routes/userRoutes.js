@@ -1,6 +1,6 @@
 const express = require("express");
 const {getAllUsers, createUser, getUser, updateUser, deleteUser} = require("../controllers/userControllers.js");
-const {signUp, login, forgotPassword, resetPassword} = require("../controllers/authController.js");
+const {signUp, login, forgotPassword, resetPassword, updatePassword, protect} = require("../controllers/authController.js");
 const router = express.Router(); // creates a new router and saves into router
 
 /*
@@ -14,6 +14,7 @@ router
 
 router.post('/forgotPassword', forgotPassword) // receives email address
 router.patch('/resetPassword/:token', resetPassword) // receives token and new pw
+router.patch('/updateMyPassword', protect, updatePassword)
 
 /*
     Admin Only Routes
