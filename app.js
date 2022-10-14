@@ -2,6 +2,9 @@ const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp')
 
 
 const AppError = require('./utils/appError.js');
@@ -31,7 +34,18 @@ app.use('/api', limiter);
 // log only in dev
 process.env.NODE_ENV === 'development' && app.use(morgan('dev'));
 
-app.use(express.json({limit: '10kb'})); // body cannot be massively huge
+app.use(express.json({limit: '10kb'})); // ensures body cannot be massively huge
+
+// Data sanitization - removes $, ., etc
+app.use(mongoSanitize());
+
+// XSS - removes malicious HTML code by converting < to &lt;
+app.use(xss());
+
+// parameter pollution - removes duplicate parameters in url string
+app.use(hpp({
+    whitelist: ['duration', 'ratingsAverage', 'ratingsQuantity', 'maxGroupSize', 'difficulty', 'price']
+}));
 
 app.use(express.static(`${__dirname}/public`)); // assumes a public directory in root
 
