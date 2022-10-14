@@ -1,5 +1,8 @@
 const express = require('express');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+
 
 const AppError = require('./utils/appError.js');
 const globalErrorHandler = require('./controllers/errorController.js');
@@ -8,10 +11,27 @@ const userRouter = require("./routes/userRoutes.js");
 
 const app = express();
 
+/*
+    Helmet
+ */
+app.use(helmet());
+
+/*
+    Rate Limiter
+    Automatically sends a 429 when limit hit
+ */
+const limiter = rateLimit({
+    max: 100,
+    windowMs: 3600 * 1000, // 1 hour
+    message: "Too many requests, spammer"
+});
+app.use('/api', limiter);
+
+
 // log only in dev
 process.env.NODE_ENV === 'development' && app.use(morgan('dev'));
 
-app.use(express.json());
+app.use(express.json({limit: '10kb'})); // body cannot be massively huge
 
 app.use(express.static(`${__dirname}/public`)); // assumes a public directory in root
 
