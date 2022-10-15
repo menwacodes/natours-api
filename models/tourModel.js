@@ -83,7 +83,37 @@ const tourSchema = new mongoose.Schema({
         secretTour: {
             type: Boolean,
             default: false
-        }
+        },
+        startLocation: {
+            // GeoJSON for geospatial data (type and coordinates are required)
+            type: {
+                type: String,
+                default: 'Point',
+                enum: ['Point']
+            },
+            coordinates: [Number], // lng, lat format
+            address: String,
+            description: String
+        },
+        locations: [
+            // embedded documents, an array of objects
+            {
+                type: {
+                    type: String,
+                    default: 'Point',
+                    enum: ['Point']
+                },
+                coordinates: [Number],
+                address: String,
+                description: String,
+                day: Number
+            }
+
+        ],
+        guides: [{
+            type: mongoose.Schema.ObjectId,
+            ref: 'User' // does not require import of User Model
+        }]
     },
     {
         toJSON: {virtuals: true}, // whenever the output is provided as JSON, provide the virtuals
@@ -102,6 +132,13 @@ tourSchema.pre('save', function (next) {
     this.slug = slugify(this.name, {lower: true});
     return next();
 });
+
+// EMBEDDING
+// tourSchema.pre('save', async function (next) {
+//     const guidesPromises = this.guides.map(async id => await User.findById(id)); // the result of map is an array of promises
+//     this.guides = await Promise.all(guidesPromises); // Promise.all will run all promises in the array
+//     return next();
+// });
 
 // executed after the pre-middleware has been completed
 // tourSchema.post('save', function(justSavedDoc, next){
@@ -128,6 +165,15 @@ tourSchema.pre(/^find/, function (next) { // regExp for all the commands that st
 
     // add a clock
     this.start = Date.now();
+    return next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+    this.populate({
+            path: 'guides',
+            select: '-__v -passwordChangedAt'
+        }
+    );
     return next();
 });
 

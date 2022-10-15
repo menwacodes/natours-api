@@ -47,7 +47,7 @@ const getAllTours = catchAsync(async (req, res, next) => {
 });
 
 const getOneTour = catchAsync(async (req, res, next) => {
-    const tour = await Tour.findById(req.params.id); // because this is a param named id on the route
+    const tour = await Tour.findById(req.params.id) // in query mw: .populate('guides'); // because this is a param named id on the route
     // findById is a shorthand helper for .findOne({_id: req.params.id})
 
     if (!tour) return next(new AppError(`No tour with id ${req.params.id}`, 404));
