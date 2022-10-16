@@ -110,6 +110,7 @@ const tourSchema = new mongoose.Schema({
             }
 
         ],
+        // child referencing
         guides: [{
             type: mongoose.Schema.ObjectId,
             ref: 'User' // does not require import of User Model
