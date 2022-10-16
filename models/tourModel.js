@@ -126,6 +126,15 @@ tourSchema.virtual('durationWeeks').get(function () {
     return this.duration / 7; // 'this' points to the current document
 });
 
+// populate the reviews for the tour with virtual populate
+// 1. create the virtual
+// 2. use populate on the Tour
+tourSchema.virtual('reviews', {
+    ref: 'Review',
+    foreignField: 'tour', // on the review model
+    localField: '_id' // on the tour model
+});
+
 // called before a document is saved to the database (only on .save() and .create(), (NOT on .insertMany()))
 // pre-save MW gets access to next
 tourSchema.pre('save', function (next) {
