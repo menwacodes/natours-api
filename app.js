@@ -11,6 +11,7 @@ const AppError = require('./utils/appError.js');
 const globalErrorHandler = require('./controllers/errorController.js');
 const tourRouter = require("./routes/tourRoutes.js");
 const userRouter = require("./routes/userRoutes.js");
+const reviewRouter = require("./routes/reviewRoutes.js");
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/tours', tourRouter); // assigns a route to use the tourRouter (mounting a router on a route)
 app.use('/api/v1/users', userRouter); // assigns a route to use the userRouter
+app.use('/api/v1/reviews', reviewRouter);
 
 // unhandled routes
 // all http verbs
