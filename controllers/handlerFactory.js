@@ -75,6 +75,15 @@ const getAll = Model => catchAsync(async (req, res, next) => {
     let filterObj = {};
     if (req.params.tourId) filterObj = {tour: req.params.tourId};
     const queryObj = {...req.query};
+    /*
+    This stuff to get role into the query mw for get all users so admins can see soft-deletes
+    // const userRole = User.findById(req.params.id).select('role')
+    // queryObj.requestorRole = userRole
+    // in APIFeatures, assign this.query.role = this.query.requestorRole
+    // in model query mw, should be able to pull out of 'this'
+    // in userRoutes, requires .get(protect,getMe,getAllUsers) as the MW to put user data onto request
+     */
+
 
     const excludedFields = ['page', 'sort', 'limit', 'fields']; // array to exclude from filter
     const allowableFields = ['duration', 'difficulty', 'price', 'rating', 'role'].concat(excludedFields); // array to scrape garbage off query string

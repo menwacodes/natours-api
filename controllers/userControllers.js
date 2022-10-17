@@ -13,7 +13,7 @@ const filterObj = (obj, ...allowedFields) => {
 };
 
 
-const getAllUsers = factory.getAll(User)
+const getAllUsers = factory.getAll(User);
 
 const createUser = (req, res) => {
     res.status(500).json({
@@ -25,6 +25,13 @@ const createUser = (req, res) => {
 const getUser = factory.getOne(User);
 
 const updateUser = factory.updateOne(User);
+
+// sets the controller's expected value to a known one from protect MW
+const getMe = (req, res, next) => {
+    req.params.id = req.user.id
+    // console.log(req.params.id)
+    return next();
+};
 
 const updateMe = catchAsync(async (req, res, next) => {
     // 1) Create an error if the user tries to update password
@@ -57,4 +64,4 @@ const deleteMe = catchAsync(async (req, res, next) => {
     });
 });
 
-module.exports = {getAllUsers, createUser, getUser, updateUser, deleteUser, updateMe, deleteMe};
+module.exports = {getAllUsers, createUser, getUser, updateUser, deleteUser, updateMe, deleteMe, getMe};
