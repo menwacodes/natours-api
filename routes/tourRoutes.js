@@ -13,6 +13,9 @@ const {
     getMonthlyPlan
 } = require("../controllers/tourControllers.js");
 const {protect, authorize} = require("../controllers/authController.js");
+const reviewRouter = require('./reviewRoutes.js')
+
+router.use('/:tourId/reviews', reviewRouter) // redirect tour router for given segment
 
 router
     .route('/tour-stats')

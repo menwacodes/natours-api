@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
-const {randomBytes, createHash} = require('crypto'); // built-in node module
+const {randomBytes, createHash} = require('crypto');
+const req = require("express/lib/request.js"); // built-in node module
 
 const {Schema} = mongoose;
 

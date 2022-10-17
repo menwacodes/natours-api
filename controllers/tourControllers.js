@@ -1,7 +1,7 @@
 const Tour = require('./../models/tourModel.js');
 const APIFeatures = require("../utils/apiFeatures.js");
 const catchAsync = require('../utils/catchAsync.js');
-const AppError = require("../utils/appError.js");
+const factory = require('./handlerFactory.js');
 
 
 const aliasTopTours = async (req, res, next) => {
@@ -12,89 +12,16 @@ const aliasTopTours = async (req, res, next) => {
     return next();
 };
 
-const getAllTours = catchAsync(async (req, res, next) => {
+const getAllTours = factory.getAll(Tour)
 
-    const queryObj = {...req.query}; // shallow copy req.query (which is not nested)
+const getOneTour = factory.getOne(Tour, {path: 'reviews'})
 
-    const excludedFields = ['page', 'sort', 'limit', 'fields']; // array to exclude from filter
-    const allowableFields = ['duration', 'difficulty', 'price'].concat(excludedFields); // array to scrape garbage off query string
+const createTour = factory.createOne(Tour);
 
-    // scrape any user-augmented params
-    // console.log('queryObj before clean: ', queryObj);
-    Object.keys(queryObj).forEach(el => {
-        if (!(allowableFields.includes(el))) {
-            delete queryObj[el];
-        }
-    });
+const updateTour = factory.updateOne(Tour);
 
+const deleteTour = factory.deleteOne(Tour)
 
-    // .find() creates a query object, the class operates on that object
-    // req.query is the query string
-    // the class methods need to return 'this' in order to get back a query object so that chaining can occur
-    const features = new APIFeatures(Tour.find(), queryObj)
-        .filter(excludedFields)
-        .sort()
-        .limitFields()
-        .paginate();
-
-    const tours = await features.query; // query execution
-
-    res.status(200).json({
-        status: "success",
-        results: tours.length,
-        data: {tours}
-    });
-});
-
-const getOneTour = catchAsync(async (req, res, next) => {
-    const tour = await Tour.findById(req.params.id).populate('reviews') // in query mw: .populate('guides'); // because this is a param named id on the route
-    // findById is a shorthand helper for .findOne({_id: req.params.id})
-
-    if (!tour) return next(new AppError(`No tour with id ${req.params.id}`, 404));
-
-    res.status(200).json({
-        status: "success",
-        data: {tour}
-    });
-});
-
-const createTour = catchAsync(async (req, res, next) => {
-    const newTour = await Tour.create(req.body); // saves directly to db
-
-    res.status(201).json({
-        status: "success",
-        data: {
-            tour: newTour
-        }
-    });
-
-});
-
-const updateTour = catchAsync(async (req, res, next) => {
-    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-        new: true, // the new, updated document is what is returned
-        runValidators: true // ensures any created validators are run on the passed-in data
-    });
-    if (!tour) return next(new AppError(`No tour with id ${req.params.id}`, 404));
-    res.status(200).json({
-        status: "success",
-        data: {tour}
-    });
-});
-
-const deleteTour = catchAsync(async (req, res, next) => {
-    const id = req.params.id;
-    const tour = await Tour.findByIdAndDelete(id);
-    if (!tour) return next(new AppError(`No tour with id ${req.params.id}`, 404));
-
-    res.status(204).json({
-        status: "success",
-        data: {
-            tour: null,
-            message: `Tour ${id} was deleted`
-        }
-    });
-});
 
 const getTourStats = catchAsync(async (req, res, next) => {
     // array of object stages to define pipeline
