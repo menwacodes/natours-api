@@ -13,17 +13,17 @@ const {
     getMonthlyPlan
 } = require("../controllers/tourControllers.js");
 const {protect, authorize} = require("../controllers/authController.js");
-const reviewRouter = require('./reviewRoutes.js')
+const reviewRouter = require('./reviewRoutes.js');
 
-router.use('/:tourId/reviews', reviewRouter) // redirect tour router for given segment
+router.use('/:tourId/reviews', reviewRouter); // redirect tour router for given segment
 
 router
     .route('/tour-stats')
-    .get(getTourStats)
+    .get(getTourStats);
 
 router
     .route('/monthly-plan/:year')
-    .get(getMonthlyPlan)
+    .get(protect, authorize('admin', 'lead-guide', 'guide'),getMonthlyPlan);
 
 // vanity route to pre-fill fields in query string
 // needs middleware before running the getAllTours handler
@@ -33,13 +33,13 @@ router
 
 router
     .route('/')
-    .get(protect, getAllTours)
-    .post(createTour);
+    .get(getAllTours)
+    .post(protect, authorize('admin', 'lead-guide'), createTour);
 
 router
     .route('/:id')
     .get(getOneTour)
-    .patch(updateTour)
+    .patch(protect, authorize('admin', 'lead-guide'), updateTour)
     .delete(protect, authorize('admin', 'lead-guide'), deleteTour);
 
 module.exports = router;
