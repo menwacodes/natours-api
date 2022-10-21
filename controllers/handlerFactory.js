@@ -101,6 +101,7 @@ const getAll = Model => catchAsync(async (req, res, next) => {
         .paginate();
 
     const documents = await features.query; // query execution
+    // const documents = await features.query.explain(); // query explain
 
     res.status(200).json({
         status: "success",
