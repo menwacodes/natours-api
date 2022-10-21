@@ -10,7 +10,8 @@ const {
     deleteTour,
     aliasTopTours,
     getTourStats,
-    getMonthlyPlan
+    getMonthlyPlan,
+    getToursWithin
 } = require("../controllers/tourControllers.js");
 const {protect, authorize} = require("../controllers/authController.js");
 const reviewRouter = require('./reviewRoutes.js');
@@ -30,6 +31,13 @@ router
 router
     .route('/top-5-cheap')
     .get(aliasTopTours, getAllTours);
+
+/*
+    GEOSPATIAL
+ */
+router
+    .route('/tours-within/:distance/center/:latlng/unit/:unit')
+    .get(getToursWithin);
 
 router
     .route('/')

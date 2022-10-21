@@ -1,7 +1,7 @@
 const c = require("ansi-colors");
 const AppError = require("../utils/appError.js");
 
-const handleJWTError = () => new AppError("Invalid Token. Please login again.", 401)
+const handleJWTError = () => new AppError("Invalid Token. Please login again.", 401);
 
 const handleCastErrorDB = err => {
     const message = `Invalid ${err.path}: ${err.value}`;
@@ -50,7 +50,9 @@ module.exports = (err, req, res, next) => { // 4 parameters is the signature for
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
     // Differentiate between prod and dev
-    if (process.env.NODE_ENV === 'development') sendErrorDev(err, res);
+    if (process.env.NODE_ENV === 'development') {
+        sendErrorDev(err, res);
+    }
     else if (process.env.NODE_ENV === 'production') {
         // let knownErr = {...err};
         let knownErr = Object.create(err);
@@ -64,7 +66,7 @@ module.exports = (err, req, res, next) => { // 4 parameters is the signature for
 
 
         // JSON Web Token error
-        if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") knownErr = handleJWTError(knownErr)
+        if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") knownErr = handleJWTError(knownErr);
 
         // send error
         sendErrorProd(knownErr, res);
