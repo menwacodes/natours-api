@@ -35,6 +35,8 @@ const reviewSchema = new Schema({
     }
 );
 
+reviewSchema.index({tour: 1, user: 1}, {unique: true}) // one user can only leave one review
+
 reviewSchema.pre(/^find/, function (next) {
     this
         .populate({
