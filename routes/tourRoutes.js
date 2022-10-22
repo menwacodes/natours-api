@@ -11,7 +11,7 @@ const {
     aliasTopTours,
     getTourStats,
     getMonthlyPlan,
-    getToursWithin
+    getToursWithin, getDistances
 } = require("../controllers/tourControllers.js");
 const {protect, authorize} = require("../controllers/authController.js");
 const reviewRouter = require('./reviewRoutes.js');
@@ -38,6 +38,10 @@ router
 router
     .route('/tours-within/:distance/center/:latlng/unit/:unit')
     .get(getToursWithin);
+
+router
+    .route('/distances/:latlng/unit/:unit')
+    .get(getDistances)
 
 router
     .route('/')

@@ -207,13 +207,13 @@ tourSchema.post(/^find/, function (docs, next) {
     - to filter out the secret tours, add another match to the beginning of the pipeline array
  */
 
-tourSchema.pre('aggregate', function (next) {
-    this.pipeline().unshift({
-        '$match': {secretTour: {$ne: true}}
-    });
-    console.log(this.pipeline());
-    return next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//     this.pipeline().unshift({
+//         '$match': {secretTour: {$ne: true}}
+//     });
+//     console.log(this.pipeline());
+//     return next();
+// });
 
 /*
     MODEL
