@@ -12,6 +12,7 @@ const globalErrorHandler = require('./controllers/errorController.js');
 const tourRouter = require("./routes/tourRoutes.js");
 const userRouter = require("./routes/userRoutes.js");
 const reviewRouter = require("./routes/reviewRoutes.js");
+const viewRouter = require('./routes/viewRoutes.js');
 const path = require("path");
 
 const app = express();
@@ -66,18 +67,7 @@ app.use((req, res, next) => {
  */
 
 // template
-app.get('/', (req, res) => {
-    const context = {tour: "The Forest Hiker", user: "Homer"};
-    res.status(200).render('base', context);
-});
-app.get('/overview', (req, res) => {
-    const context = {title: "All Tours"};
-    res.status(200).render('overview', context);
-});
-app.get('/tour', (req, res) => {
-    const context = {title: "Forest Hiker"};
-    res.status(200).render('tour', context);
-});
+app.use('/', viewRouter);
 
 app.use('/api/v1/tours', tourRouter); // assigns a route to use the tourRouter (mounting a router on a route)
 app.use('/api/v1/users', userRouter); // assigns a route to use the userRouter
