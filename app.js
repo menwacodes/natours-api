@@ -4,7 +4,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
-const hpp = require('hpp')
+const hpp = require('hpp');
 
 
 const AppError = require('./utils/appError.js');
@@ -12,8 +12,13 @@ const globalErrorHandler = require('./controllers/errorController.js');
 const tourRouter = require("./routes/tourRoutes.js");
 const userRouter = require("./routes/userRoutes.js");
 const reviewRouter = require("./routes/reviewRoutes.js");
+const path = require("path");
 
 const app = express();
+
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public'))); // assumes a public directory in root
 
 /*
     Helmet
@@ -48,7 +53,6 @@ app.use(hpp({
     whitelist: ['duration', 'ratingsAverage', 'ratingsQuantity', 'maxGroupSize', 'difficulty', 'price']
 }));
 
-app.use(express.static(`${__dirname}/public`)); // assumes a public directory in root
 
 // add a property to the request body
 app.use((req, res, next) => {
@@ -60,6 +64,20 @@ app.use((req, res, next) => {
 /*
     ROUTING (also middleware)
  */
+
+// template
+app.get('/', (req, res) => {
+    const context = {tour: "The Forest Hiker", user: "Homer"};
+    res.status(200).render('base', context);
+});
+app.get('/overview', (req, res) => {
+    const context = {title: "All Tours"};
+    res.status(200).render('overview', context);
+});
+app.get('/tour', (req, res) => {
+    const context = {title: "Forest Hiker"};
+    res.status(200).render('tour', context);
+});
 
 app.use('/api/v1/tours', tourRouter); // assigns a route to use the tourRouter (mounting a router on a route)
 app.use('/api/v1/users', userRouter); // assigns a route to use the userRouter

@@ -76,7 +76,7 @@ const getAll = Model => catchAsync(async (req, res, next) => {
     if (req.params.tourId) filterObj = {tour: req.params.tourId};
     const queryObj = {...req.query};
     /*
-    This stuff to get role into the query mw for get all users so admins can see soft-deletes
+    This stuff to get rolled into the query mw for get all users so admins can see soft-deletes
     // const userRole = User.findById(req.params.id).select('role')
     // queryObj.requestorRole = userRole
     // in APIFeatures, assign this.query.role = this.query.requestorRole
