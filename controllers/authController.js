@@ -17,12 +17,12 @@ const createAndSendToken = (user, statusCode, res) => {
     const cookieOptions = {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 3600 * 1000),
         httpOnly: true // cookie cannot be accessed or modified by browser
-    }
-    if(process.env.NODE_ENV === 'production') cookieOptions.secure = true // cookie only sent on an encrypted connection (https) in production
+    };
+    if (process.env.NODE_ENV === 'production') cookieOptions.secure = true; // cookie only sent on an encrypted connection (https) in production
 
-    user.password = undefined
+    user.password = undefined;
 
-    res.cookie('jwt', token, cookieOptions)
+    res.cookie('jwt', token, cookieOptions);
 
     res.status(statusCode).json({
         status: "success",
@@ -69,10 +69,13 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
-    // 1) Get token
+    // 1) Get token from either API auth header or cookies
     let token;
     req.headers.authorization && req.headers.authorization.startsWith("Bearer")
         ? token = req.headers.authorization.split(" ").at(1)
+        : token = undefined;
+    req.cookies.jwt
+        ? token = req.cookies.jwt
         : token = undefined;
 
     if (!token) return next(new AppError("User not logged in", 401));

@@ -23,3 +23,8 @@ exports.getTour = catchAsync(async (req, res, next) => {
 
     res.status(200).render('tour', context);
 });
+
+exports.getLoginForm = (req, res) => {
+    const context = {title: 'Log into your account'}
+    res.status(200).render('login', context)
+}

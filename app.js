@@ -14,6 +14,7 @@ const userRouter = require("./routes/userRoutes.js");
 const reviewRouter = require("./routes/reviewRoutes.js");
 const viewRouter = require('./routes/viewRoutes.js');
 const path = require("path");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
@@ -24,7 +25,14 @@ app.use(express.static(path.join(__dirname, 'public'))); // assumes a public dir
 /*
     Helmet
  */
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      'script-src': ["'self'", "https://cdnjs.cloudflare.com/"]
+    }
+  }
+}));
 
 /*
     Rate Limiter
@@ -42,6 +50,7 @@ app.use('/api', limiter);
 process.env.NODE_ENV === 'development' && app.use(morgan('dev'));
 
 app.use(express.json({limit: '10kb'})); // ensures body cannot be massively huge
+app.use(cookieParser()) // parses data from cookies sent from browser onto the req as 'cookies'
 
 // Data sanitization - removes $, ., etc
 app.use(mongoSanitize());
@@ -58,6 +67,7 @@ app.use(hpp({
 // add a property to the request body
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString();
+    console.log(req.cookies)
     return next();
 });
 
